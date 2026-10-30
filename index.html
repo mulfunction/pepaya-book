@@ -86,6 +86,7 @@ body::before{content:"";position:fixed;inset:0;pointer-events:none;opacity:.18;
 @keyframes bob{0%,100%{translate:0 0}50%{translate:0 -1.4cqw}}
 
 /* tappables */
+.tap *{pointer-events:none}
 .tap{cursor:pointer;border:0;background:none;padding:0;font:inherit;color:inherit;text-align:inherit;position:relative}
 .tap:focus-visible{outline:.8cqw solid #fff;outline-offset:.6cqw;border-radius:3cqw}
 .bump{animation:bump .45s var(--spring) !important}
@@ -628,7 +629,9 @@ $('#bToc').onclick = () => toc(!$('#toc').classList.contains('on'));
 $('#close').onclick = $('#scrim').onclick = () => toc(false);
 
 /* ---------- INTERACTIONS ---------- */
-function bump(el) { el.classList.remove('bump'); void el.offsetWidth; el.classList.add('bump'); clearTimeout(el._b); el._b = setTimeout(() => el.classList.remove('bump'), 500); }
+// Web Animations compose with the CSS intro animation instead of replacing it (replacing restarted the intro + its delay = item vanished)
+function bump(el) { el.animate([{ scale: 1 }, { scale: 1.14 }, { scale: .96 }, { scale: 1 }], { duration: 450, easing: 'ease-out' }); }
+function wiggle(el) { el.animate([{ rotate: '0deg' }, { rotate: '-7deg' }, { rotate: '6deg' }, { rotate: '-3deg' }, { rotate: '0deg' }], { duration: 700, easing: 'ease-in-out' }); }
 function say(pg, txt, ms = 2600) {
   const s = $('.say', pg); if (!s) return; s.textContent = txt; s.classList.remove('on'); void s.offsetWidth; s.classList.add('on');
   clearTimeout(s._t); s._t = setTimeout(() => s.classList.remove('on'), ms);
@@ -637,7 +640,7 @@ document.addEventListener('click', e => {
   const t = e.target.closest('.tap'); if (!t) return; ctx();
   const pg = t.closest('.pg'); e.stopPropagation();
   const act = t.dataset.act;
-  if (t.dataset.say) { pop(); t.classList.remove('wiggle'); void t.offsetWidth; t.classList.add('wiggle'); setTimeout(() => t.classList.remove('wiggle'), 750); say(pg, t.dataset.say); return; }
+  if (t.dataset.say) { pop(); wiggle(t); say(pg, t.dataset.say); return; }
   if (act === 'cut') { const c = !t.classList.contains('cut'); t.classList.toggle('cut', c); pop(); if (c) { seeds(pg); say(pg, 'Lihat! Bijinya banyak sekali!'); } return; }
   if (act === 'map') { $('.map', pg).classList.toggle('on'); pop(); return; }
   if (act === 'water') { water(pg); return; }
