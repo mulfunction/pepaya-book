@@ -288,6 +288,7 @@ svg.ic{width:100%;height:100%;display:block}
 /* ---------- CHROME ---------- */
 #bar{position:relative;z-index:20;margin:4px 0 max(14px,env(safe-area-inset-bottom));display:flex;align-items:center;gap:4px;
   background:var(--bar);color:var(--barInk);padding:6px;border-radius:999px;box-shadow:0 8px 24px rgba(120,60,0,.25)}
+#bar button[hidden]{display:none}
 #bar button{width:44px;height:44px;border:0;border-radius:50%;background:transparent;color:inherit;cursor:pointer;display:grid;place-items:center;transition:background .2s}
 #bar button:hover{background:#fff1d6}
 #bar button:disabled{opacity:.3;cursor:default;background:none}
@@ -527,8 +528,9 @@ const $ = (s, r = document) => r.querySelector(s), $$ = (s, r = document) => [..
 const pages = $$('#book > .page'), N = pages.length, pgs = pages.map(p => p.firstElementChild);
 
 /* ---------- SOUND (synthesised, no files) ---------- */
-let ac = null, muted = localStorage.getItem('pepaya.muted') === '1';
-const ctx = () => { if (!ac) ac = new (window.AudioContext || window.webkitAudioContext)(); if (ac.state === 'suspended') ac.resume(); return ac; };
+const SOUND = false; // sound off for now (user request); set true to restore flip/pop sounds + mute button
+let ac = null, muted = !SOUND || localStorage.getItem('pepaya.muted') === '1';
+const ctx = () => { if (!SOUND) return null; if (!ac) ac = new (window.AudioContext || window.webkitAudioContext)(); if (ac.state === 'suspended') ac.resume(); return ac; };
 function flipSnd() {
   if (muted) return; const a = ctx(), t = a.currentTime, len = .42;
   const buf = a.createBuffer(1, a.sampleRate * len, a.sampleRate), d = buf.getChannelData(0);
@@ -614,6 +616,7 @@ addEventListener('keydown', e => { if (e.key === 'ArrowRight') flip.flipNext(); 
 function go(i) { const v = visible(); if (v.includes(i)) return; const cur = v[0]; if (Math.abs(i - cur) <= 2) flip.flip(i); else { flipSnd(); flip.turnToPage(i); wake(); } }
 
 const sndIcon = () => { $('#bSnd .w').style.opacity = muted ? .15 : 1; $('#bSnd').setAttribute('aria-pressed', !muted); };
+if (!SOUND) $('#bSnd').hidden = true;
 $('#bSnd').onclick = () => { muted = !muted; localStorage.setItem('pepaya.muted', muted ? '1' : '0'); sndIcon(); if (!muted) pop(); }; sndIcon();
 $('#bFs').onclick = () => document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen?.();
 
